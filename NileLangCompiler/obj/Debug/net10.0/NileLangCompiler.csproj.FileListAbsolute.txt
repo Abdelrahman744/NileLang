@@ -1,0 +1,14 @@
+F:\NileLang\NileLangCompiler\obj\Debug\net10.0\NileLangCompiler.GeneratedMSBuildEditorConfig.editorconfig
+F:\NileLang\NileLangCompiler\obj\Debug\net10.0\NileLangCompiler.AssemblyInfoInputs.cache
+F:\NileLang\NileLangCompiler\obj\Debug\net10.0\NileLangCompiler.AssemblyInfo.cs
+F:\NileLang\NileLangCompiler\obj\Debug\net10.0\NileLangCompiler.csproj.CoreCompileInputs.cache
+F:\NileLang\NileLangCompiler\bin\Debug\net10.0\NileLangCompiler.exe
+F:\NileLang\NileLangCompiler\bin\Debug\net10.0\NileLangCompiler.deps.json
+F:\NileLang\NileLangCompiler\bin\Debug\net10.0\NileLangCompiler.runtimeconfig.json
+F:\NileLang\NileLangCompiler\bin\Debug\net10.0\NileLangCompiler.dll
+F:\NileLang\NileLangCompiler\bin\Debug\net10.0\NileLangCompiler.pdb
+F:\NileLang\NileLangCompiler\obj\Debug\net10.0\NileLangCompiler.dll
+F:\NileLang\NileLangCompiler\obj\Debug\net10.0\refint\NileLangCompiler.dll
+F:\NileLang\NileLangCompiler\obj\Debug\net10.0\NileLangCompiler.pdb
+F:\NileLang\NileLangCompiler\obj\Debug\net10.0\NileLangCompiler.genruntimeconfig.cache
+F:\NileLang\NileLangCompiler\obj\Debug\net10.0\ref\NileLangCompiler.dll

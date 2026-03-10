@@ -29,12 +29,19 @@ public enum TokenType
     Number, 
     StringLiteral,
 
-    //  Symbols & Operators
+    //  Symbols & OperatorsAssign,         
     Assign,          // =
+    Equals,          // ==
+    Not,             // !
+    NotEquals,       // !=
     GreaterThan,     // >
+    GreaterOrEqual,  // >=
     LessThan,        // <
+    LessOrEqual,     // <=
     Plus,            // +
+    Increment,       // ++
     Minus,           // -
+    Decrement,       // --
     LeftBrace,       // {
     RightBrace,      // }
     LeftParen,       // (

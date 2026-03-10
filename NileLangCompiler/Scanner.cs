@@ -13,7 +13,7 @@ public class Scanner
         @"(?<Keyword>\b(temple|reign|stone|papyrus|maat|judge|banish|flow|dynasty|carve|listen|tribute)\b)|" +
         @"(?<Number>\d+)|" +
         @"(?<Identifier>[A-Za-z]\w*)|" +
-        @"(?<Operator>[=><+\-])|" +
+        @"(?<Operator>(==|!=|>=|<=|\+\+|--|[=><+\-!]))|" +
         @"(?<Symbol>[{};()])|" +
         @"(?<StringLiteral>"".*?"")|" +
         @"(?<Whitespace>\s+)|"+
@@ -67,15 +67,22 @@ public class Scanner
 
             // operators
 
-            else if (match.Groups["Operator"].Success)
+          else if (match.Groups["Operator"].Success)
             {
                 type = lexeme switch
                 {
+                    "==" => TokenType.Equals,
+                    "!=" => TokenType.NotEquals,
+                    ">=" => TokenType.GreaterOrEqual,
+                    "<=" => TokenType.LessOrEqual,
+                    "++" => TokenType.Increment,
+                    "--" => TokenType.Decrement,
                     "=" => TokenType.Assign,
                     ">" => TokenType.GreaterThan,
                     "<" => TokenType.LessThan,
                     "+" => TokenType.Plus,
                     "-" => TokenType.Minus,
+                    "!" => TokenType.Not,
                     _ => TokenType.Unknown
                 };
             }

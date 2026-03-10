@@ -12,3 +12,4 @@ F:\NileLang\NileLangCompiler\obj\Debug\net10.0\refint\NileLangCompiler.dll
 F:\NileLang\NileLangCompiler\obj\Debug\net10.0\NileLangCompiler.pdb
 F:\NileLang\NileLangCompiler\obj\Debug\net10.0\NileLangCompiler.genruntimeconfig.cache
 F:\NileLang\NileLangCompiler\obj\Debug\net10.0\ref\NileLangCompiler.dll
+F:\NileLang\NileLangCompiler\obj\Debug\net10.0\NileLangCompiler.sourcelink.json

@@ -5,12 +5,11 @@ class Program
 {
     static void Main()
     {
-        // A snippet of NileLang code based on your Underworld example
-        string sourceCode = @"
-            // The Pharaoh commanded this variable
-            stone goodDeeds = 10;
-            @
-        ";
+       string a = @"water nileDepth = 15.5;
+                    stone builders = 100;
+                    
+                    ";
+       string sourceCode = a;
 
         Console.WriteLine("Scanning NileLang Source Code...\n");
 

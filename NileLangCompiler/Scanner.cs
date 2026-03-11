@@ -10,12 +10,13 @@ public class Scanner
 {
     private static readonly string _pattern =
         @"(?<Comment>(//.*?$)|(/\*[\s\S]*?\*/))|" +
-        @"(?<Keyword>\b(temple|reign|stone|papyrus|maat|judge|banish|flow|dynasty|carve|listen|tribute)\b)|" +
-        @"(?<Number>\d+)|" +
+        @"(?<Keyword>\b(temple|reign|stone|water|papyrus|maat|judge|banish|flow|dynasty|carve|listen|tribute)\b)|" +
+        @"(?<Float>\d+\.\d+)|" +
+        @"(?<Integer>\d+)|" +
         @"(?<Identifier>[A-Za-z]\w*)|" +
-        @"(?<Operator>(==|!=|>=|<=|\+\+|--|[=><+\-!]))|" +
+        @"(?<Operator>(==|!=|>=|<=|\+\+|--|&&|\|\||[=><+\-!]))|" +
         @"(?<Symbol>[{};()])|" +
-        @"(?<StringLiteral>"".*?"")|" +
+        @"(?<StringLiteral>""(?:[^""\\]|\\.)*"")|" +
         @"(?<Whitespace>\s+)|"+
         @"(?<Unknown>.)";
 
@@ -49,13 +50,17 @@ public class Scanner
 
             if (match.Groups["Keyword"].Success)
             {
-                // Converts the string "stone" to the TokenType.Stone enum automatically
+                
                 Enum.TryParse(lexeme, true, out type); 
             }
 
-            // numbers 
+            // Intger
 
-            else if (match.Groups["Number"].Success) type = TokenType.Number;
+            else if (match.Groups["Float"].Success) type = TokenType.Float; 
+             
+            // float
+
+            else if (match.Groups["Integer"].Success) type = TokenType.Integer;
 
             // Identifiers
 
@@ -83,6 +88,8 @@ public class Scanner
                     "+" => TokenType.Plus,
                     "-" => TokenType.Minus,
                     "!" => TokenType.Not,
+                    "&&" => TokenType.And, 
+                    "||" => TokenType.Or,
                     _ => TokenType.Unknown
                 };
             }

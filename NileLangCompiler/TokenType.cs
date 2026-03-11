@@ -7,6 +7,7 @@ public enum TokenType
      templet - class
      reign - main
      stone - int
+     water - float
      papyrus - string 
      maat - boolean 
      judge - if
@@ -20,13 +21,14 @@ public enum TokenType
     
     
     */
-    Temple, Reign, Stone, Papyrus, Maat, Judge, Banish, Flow, Dynasty, Carve, Listen, Tribute,
+    Temple, Reign, Stone, Water ,Papyrus, Maat, Judge, Banish, Flow, Dynasty, Carve, Listen, Tribute,
 
 
 
     // Other Tokens
     Identifier, 
-    Number, 
+    Integer,     
+    Float,
     StringLiteral,
 
     //  Symbols & OperatorsAssign,         
@@ -42,6 +44,10 @@ public enum TokenType
     Increment,       // ++
     Minus,           // -
     Decrement,       // --
+    And,             // &&  
+    Or,              // ||   
+
+
     LeftBrace,       // {
     RightBrace,      // }
     LeftParen,       // (

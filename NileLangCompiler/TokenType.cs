@@ -44,9 +44,10 @@ public enum TokenType
     Increment,       // ++
     Minus,           // -
     Decrement,       // --
+    Multiply,        
+    Divide,         
     And,             // &&  
     Or,              // ||   
-
 
     LeftBrace,       // {
     RightBrace,      // }

@@ -14,7 +14,7 @@ public class Scanner
         @"(?<Float>\d+\.\d+)|" +
         @"(?<Integer>\d+)|" +
         @"(?<Identifier>[A-Za-z]\w*)|" +
-        @"(?<Operator>(==|!=|>=|<=|\+\+|--|&&|\|\||[=><+\-!]))|" +
+        @"(?<Operator>(==|!=|>=|<=|\+\+|--|&&|\|\||[=><+\-!*/]))|" +
         @"(?<Symbol>[{};()])|" +
         @"(?<StringLiteral>""(?:[^""\\]|\\.)*"")|" +
         @"(?<Whitespace>\s+)|"+
@@ -54,11 +54,11 @@ public class Scanner
                 Enum.TryParse(lexeme, true, out type); 
             }
 
-            // Intger
+            // float
 
             else if (match.Groups["Float"].Success) type = TokenType.Float; 
              
-            // float
+            // intger
 
             else if (match.Groups["Integer"].Success) type = TokenType.Integer;
 
@@ -87,6 +87,8 @@ public class Scanner
                     "<" => TokenType.LessThan,
                     "+" => TokenType.Plus,
                     "-" => TokenType.Minus,
+                    "*" => TokenType.Multiply,
+                    "/" => TokenType.Divide,  
                     "!" => TokenType.Not,
                     "&&" => TokenType.And, 
                     "||" => TokenType.Or,

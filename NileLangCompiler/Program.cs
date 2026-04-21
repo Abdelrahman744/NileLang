@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using NileLangCompiler;
 
 class Program
@@ -27,9 +28,16 @@ class Program
         Scanner scanner = new Scanner();
         var tokens = scanner.Scan(sourceCode);
 
-        // 2. Syntax Analysis (The Parser)
+        // 2. Syntax Analysis & AST Building (The Parser)
         Parser parser = new Parser(tokens);
-        parser.Parse();
+        
+        // Capture the Abstract Syntax Tree!
+        List<Stmt> abstractSyntaxTree = parser.Parse();
+        
+        // Print out how many root nodes the tree contains
+        Console.WriteLine($"[AST Size]: Created {abstractSyntaxTree.Count} root statement nodes.");
+        // 3. AST Visualization (The AstPrinter)
+        AstPrinter.PrintTree(abstractSyntaxTree);
         
         Console.WriteLine("==========================================\n");
     }
@@ -77,7 +85,7 @@ class Program
         ";
     }
 
-   static string TestError()
+    static string TestError()
     {
         return @"
             stone missingSemicolon = 10

@@ -14,9 +14,8 @@ public class Parser
     }
 
     // ==========================================
-    // 1. THE HELPER TOOLS (The Parser's Eyes)
+    // 1. HELPER TOOLS
     // ==========================================
-    
     private Token Peek() => _tokens[_current];
     private Token Previous() => _tokens[_current - 1];
     private bool IsAtEnd() => Peek().Type == TokenType.EOF;
@@ -39,247 +38,263 @@ public class Parser
         throw new Exception($"Syntax Error [Line {Peek().Line}]: {message}. Found '{Peek().Lexeme}' instead.");
     }
 
-   
-    // ==========================================
-    // 2. STATEMENTS & CONTROL FLOW
-    // ==========================================
-
-    public void Parse()
+    private void Synchronize()
     {
-        Console.WriteLine("\n--- Starting Syntax Analysis (Parsing) ---");
-        try
+        Advance();
+        while (!IsAtEnd())
         {
-            while (!IsAtEnd())
+            if (Previous().Type == TokenType.Semicolon) return;
+            switch (Peek().Type)
             {
-                ParseStatement();
+                case TokenType.Stone:
+                case TokenType.Water:
+                case TokenType.Papyrus:
+                case TokenType.Maat:
+                case TokenType.Judge:
+                case TokenType.Flow:
+                case TokenType.Carve:
+                    return;
             }
-            Console.WriteLine("\nSUCCESS: Parsing Completed! No Syntax Errors.");
-        }
-        catch (Exception ex)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("\n" + ex.Message);
-            Console.ResetColor();
+            Advance();
         }
     }
 
-    // The Ultimate Traffic Cop
-    private void ParseStatement()
+    // ==========================================
+    // 2. STATEMENTS (Return Stmt objects)
+    // ==========================================
+
+    public List<Stmt> Parse()
+    {
+        List<Stmt> statements = new List<Stmt>();
+        bool hadError = false;
+
+        Console.WriteLine("\n--- Starting Syntax Analysis & AST Building ---");
+        
+        while (!IsAtEnd())
+        {
+            try
+            {
+                statements.Add(ParseStatement());
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("\n" + ex.Message);
+                Console.ResetColor();
+                hadError = true;
+                Synchronize();
+            }
+        }
+
+        if (!hadError) Console.WriteLine("SUCCESS: AST Built Perfectly!");
+        else Console.WriteLine("WARNING: AST built partially due to syntax errors.");
+
+        return statements;
+    }
+
+    private Stmt ParseStatement()
     {
         if (Check(TokenType.Stone) || Check(TokenType.Water) || Check(TokenType.Papyrus) || Check(TokenType.Maat))
-        {
-            ParseVariableDeclaration();
-        }
-        else if (Check(TokenType.Judge))
-        {
-            ParseIfStatement();
-        }
-        else if (Check(TokenType.Flow))
-        {
-            ParseWhileStatement();
-        }
-        else if (Check(TokenType.Carve))
-        {
-            ParsePrintStatement();
-        }
-        else if (Check(TokenType.LeftBrace))
-        {
-            ParseBlock();
-        }
-        else if (Check(TokenType.Identifier))
-        {
-            ParseAssignmentStatement();
-        }
-        else
-        {
-            throw new Exception($"Syntax Error: Unrecognized statement. Found '{Peek().Lexeme}'");
-        }
+            return ParseVariableDeclaration();
+        if (Check(TokenType.Judge)) return ParseIfStatement();
+        if (Check(TokenType.Flow)) return ParseWhileStatement();
+        if (Check(TokenType.Carve)) return ParsePrintStatement();
+        if (Check(TokenType.LeftBrace)) return ParseBlock();
+        if (Check(TokenType.Identifier)) return ParseAssignmentStatement();
+
+        throw new Exception($"Syntax Error: Unrecognized statement. Found '{Peek().Lexeme}'");
     }
 
-    private void ParseVariableDeclaration()
+    private Stmt ParseVariableDeclaration()
     {
-        Token typeToken = Advance(); 
-        Token nameToken = Expect(TokenType.Identifier, "Expected a variable name after the type.");
-        Expect(TokenType.Assign, $"Expected '=' after variable name '{nameToken.Lexeme}'.");
+        Token typeToken = Advance();
+        Token nameToken = Expect(TokenType.Identifier, "Expected a variable name.");
+        Expect(TokenType.Assign, "Expected '=' after variable name.");
         
-        ParseExpression(); // Evaluates math, strings, or logic
+        Expr initializer = ParseExpression();
         
-        Expect(TokenType.Semicolon, "Expected ';' at the end of the variable declaration.");
-        Console.WriteLine($"[Valid]: Variable '{nameToken.Lexeme}' declared.");
+        Expect(TokenType.Semicolon, "Expected ';' at the end of declaration.");
+        return new VarDeclStmt(typeToken, nameToken, initializer);
     }
 
-    private void ParseAssignmentStatement()
+    private Stmt ParseAssignmentStatement()
     {
-        Token nameToken = Advance(); 
-        Expect(TokenType.Assign, $"Expected '=' after variable name '{nameToken.Lexeme}'.");
-        
-        ParseExpression();
-        
-        Expect(TokenType.Semicolon, "Expected ';' at the end of the assignment.");
-        Console.WriteLine($"[Valid]: Assigned new value to '{nameToken.Lexeme}'.");
+        Token nameToken = Advance();
+        Expect(TokenType.Assign, "Expected '=' after variable name.");
+        Expr value = ParseExpression();
+        Expect(TokenType.Semicolon, "Expected ';' at the end of assignment.");
+        return new AssignStmt(nameToken, value);
     }
 
-    private void ParseBlock()
+    private Stmt ParseBlock()
     {
         Expect(TokenType.LeftBrace, "Expected '{' to start a block.");
+        List<Stmt> statements = new List<Stmt>();
+
         while (!Check(TokenType.RightBrace) && !IsAtEnd())
         {
-            ParseStatement(); 
+            statements.Add(ParseStatement());
         }
+
         Expect(TokenType.RightBrace, "Expected '}' to end the block.");
-        Console.WriteLine("[Valid]: Block parsed successfully.");
+        return new BlockStmt(statements);
     }
 
-    // IF / ELSE (judge / banish)
-    private void ParseIfStatement()
+    private Stmt ParseIfStatement()
     {
-        Advance(); // Consume 'judge'
+        Advance(); // 'judge'
         Expect(TokenType.LeftParen, "Expected '(' after 'judge'.");
+        Expr condition = ParseExpression();
+        Expect(TokenType.RightParen, "Expected ')' after condition.");
         
-        ParseExpression(); // The condition (e.g., x > 5)
-        
-        Expect(TokenType.RightParen, "Expected ')' after judge condition.");
-        
-        ParseBlock(); // The 'if' body
-        
-        // Optional 'Else' (banish)
+        Stmt thenBranch = ParseBlock();
+        Stmt elseBranch = null;
+
         if (Check(TokenType.Banish))
         {
-            Advance(); // Consume 'banish'
-            ParseBlock(); // The 'else' body
+            Advance(); // 'banish'
+            elseBranch = ParseBlock();
         }
-        Console.WriteLine("[Valid]: 'Judge' (If) statement parsed.");
+
+        return new IfStmt(condition, thenBranch, elseBranch);
     }
 
-    // WHILE LOOP (flow)
-    private void ParseWhileStatement()
+    private Stmt ParseWhileStatement()
     {
-        Advance(); // Consume 'flow'
+        Advance(); // 'flow'
         Expect(TokenType.LeftParen, "Expected '(' after 'flow'.");
-        
-        ParseExpression(); // The condition
-        
-        Expect(TokenType.RightParen, "Expected ')' after flow condition.");
-        
-        ParseBlock(); // The loop body
-        
-        Console.WriteLine("[Valid]: 'Flow' (While) loop parsed.");
+        Expr condition = ParseExpression();
+        Expect(TokenType.RightParen, "Expected ')' after condition.");
+        Stmt body = ParseBlock();
+        return new WhileStmt(condition, body);
     }
 
-    // PRINT (carve)
-    private void ParsePrintStatement()
+    private Stmt ParsePrintStatement()
     {
-        Advance(); // Consume 'carve'
+        Advance(); // 'carve'
         Expect(TokenType.LeftParen, "Expected '(' after 'carve'.");
-        
-        ParseExpression(); // What to print
-        
-        Expect(TokenType.RightParen, "Expected ')' after print value.");
-        Expect(TokenType.Semicolon, "Expected ';' at the end of the carve statement.");
-        
-        Console.WriteLine("[Valid]: 'Carve' (Print) statement parsed.");
+        Expr value = ParseExpression();
+        Expect(TokenType.RightParen, "Expected ')' after value.");
+        Expect(TokenType.Semicolon, "Expected ';'.");
+        return new PrintStmt(value);
     }
 
     // ==========================================
-    // 3. FULL EXPRESSIONS ENGINE (PEMDAS + Logic)
+    // 3. EXPRESSIONS (Return Expr objects)
     // ==========================================
 
-    private void ParseExpression()
-    {
-        ParseLogicOr();
-    }
+    private Expr ParseExpression() => ParseLogicOr();
 
-    private void ParseLogicOr()
+    private Expr ParseLogicOr()
     {
-        ParseLogicAnd();
-        while (Check(TokenType.Or)) // ||
+        Expr expr = ParseLogicAnd();
+        while (Check(TokenType.Or))
         {
-            Advance();
-            ParseLogicAnd();
+            Token op = Advance();
+            Expr right = ParseLogicAnd();
+            expr = new LogicalExpr(expr, op, right);
         }
+        return expr;
     }
 
-    private void ParseLogicAnd()
+    private Expr ParseLogicAnd()
     {
-        ParseEquality();
-        while (Check(TokenType.And)) // &&
+        Expr expr = ParseEquality();
+        while (Check(TokenType.And))
         {
-            Advance();
-            ParseEquality();
+            Token op = Advance();
+            Expr right = ParseEquality();
+            expr = new LogicalExpr(expr, op, right);
         }
+        return expr;
     }
 
-    private void ParseEquality()
+    private Expr ParseEquality()
     {
-        ParseComparison();
-        while (Check(TokenType.Equals) || Check(TokenType.NotEquals)) // ==, !=
+        Expr expr = ParseComparison();
+        while (Check(TokenType.Equals) || Check(TokenType.NotEquals))
         {
-            Advance();
-            ParseComparison();
+            Token op = Advance();
+            Expr right = ParseComparison();
+            expr = new BinaryExpr(expr, op, right);
         }
+        return expr;
     }
 
-    private void ParseComparison()
+    private Expr ParseComparison()
     {
-        ParseTerm();
+        Expr expr = ParseTerm();
         while (Check(TokenType.GreaterThan) || Check(TokenType.GreaterOrEqual) || 
-               Check(TokenType.LessThan) || Check(TokenType.LessOrEqual)) // >, >=, <, <=
+               Check(TokenType.LessThan) || Check(TokenType.LessOrEqual))
         {
-            Advance();
-            ParseTerm();
+            Token op = Advance();
+            Expr right = ParseTerm();
+            expr = new BinaryExpr(expr, op, right);
         }
+        return expr;
     }
 
-    private void ParseTerm()
+    private Expr ParseTerm()
     {
-        ParseFactor(); 
-        while (Check(TokenType.Plus) || Check(TokenType.Minus)) // +, -
+        Expr expr = ParseFactor();
+        while (Check(TokenType.Plus) || Check(TokenType.Minus))
         {
-            Advance(); 
-            ParseFactor(); 
+            Token op = Advance();
+            Expr right = ParseFactor();
+            expr = new BinaryExpr(expr, op, right); // <--- Building the Tree!
         }
+        return expr;
     }
 
-    private void ParseFactor()
+    private Expr ParseFactor()
     {
-        ParseUnary(); 
-        while (Check(TokenType.Multiply) || Check(TokenType.Divide)) // *, /
+        Expr expr = ParseUnary();
+        while (Check(TokenType.Multiply) || Check(TokenType.Divide))
         {
-            Advance(); 
-            ParseUnary(); 
+            Token op = Advance();
+            Expr right = ParseUnary();
+            expr = new BinaryExpr(expr, op, right);
         }
+        return expr;
     }
 
-    private void ParseUnary()
+    private Expr ParseUnary()
     {
-        if (Check(TokenType.Not) || Check(TokenType.Minus)) // !, - (e.g., !true or -5)
+        if (Check(TokenType.Not) || Check(TokenType.Minus))
         {
-            Advance();
-            ParseUnary();
-            return;
+            Token op = Advance();
+            Expr right = ParseUnary();
+            return new UnaryExpr(op, right);
         }
-        ParsePrimary();
+        return ParsePrimary();
     }
 
-    private void ParsePrimary()
+    private Expr ParsePrimary()
     {
-        // Numbers, Strings, and Variable Names
-        if (Check(TokenType.Integer) || Check(TokenType.Float) || 
-            Check(TokenType.StringLiteral) || Check(TokenType.Identifier))
+        if (Check(TokenType.Integer))
+            return new LiteralExpr(int.Parse(Advance().Lexeme));
+            
+        if (Check(TokenType.Float))
+            return new LiteralExpr(double.Parse(Advance().Lexeme));
+
+        if (Check(TokenType.StringLiteral))
         {
-            Advance(); 
-            return;
+            string text = Advance().Lexeme;
+            // Remove the quotes around the string for the raw value
+            return new LiteralExpr(text.Substring(1, text.Length - 2)); 
         }
 
-        // Grouping logic with Parentheses
+        if (Check(TokenType.Identifier))
+            return new VariableExpr(Advance());
+
         if (Check(TokenType.LeftParen))
         {
-            Advance(); 
-            ParseExpression(); 
+            Advance();
+            Expr expr = ParseExpression();
             Expect(TokenType.RightParen, "Expected ')' after expression.");
-            return;
+            return expr; // Grouping is naturally handled by the tree structure!
         }
 
-        throw new Exception($"Syntax Error [Line {Peek().Line}]: Expected a value, variable, or '('. Found '{Peek().Lexeme}'.");
+        throw new Exception($"Syntax Error: Expected a value. Found '{Peek().Lexeme}'.");
     }
 }

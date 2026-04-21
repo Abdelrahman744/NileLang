@@ -6,95 +6,119 @@ class Program
 {
     static void Main()
     {
-        Console.WriteLine("=== The Great Scribe's Testing Chamber ===\n");
+        Console.WriteLine("=== The Master Scribe's Final Evaluation ===\n");
 
-        RunTest("TEST 1: Variables & Complex Math", TestMath());
-        RunTest("TEST 2: Judge & Banish (If / Else)", TestIfElse());
-        RunTest("TEST 3: Flow (While Loop)", TestLoop());
-        RunTest("TEST 4: Carve (Print Statement)", TestPrint());
-        RunTest("TEST 5: The Guardrail (Intentional Syntax Error)", TestError());
+        string masterScript = @"
+            /* =========================================
+               1. VARIABLES & DATA TYPES
+               ========================================= */
+            stone workers = 10;
+            water rations = 15.5;
+            maat isRaining = false;
+            papyrus greeting = ""Welcome to the Nile construction site!"";
+
+            carve(greeting);
+
+            /* =========================================
+               2. FUNCTIONS & RETURNS (Semantic Signatures)
+               ========================================= */
+            dynasty calculateBricks(stone layers, stone bricksPerLayer) {
+                stone total = layers * bricksPerLayer;
+                tribute total; /* Return the math */
+            }
+
+            /* =========================================
+               3. CONTROL FLOW, MATH & FUNCTION CALLS
+               ========================================= */
+            judge (workers >= 10 && !isRaining) {
+                carve(""Conditions are perfect. Calculating bricks..."");
+                
+                /* Calling the function! */
+                stone totalBricks = calculateBricks(5, 20);
+                
+                carve(""Total bricks needed:"");
+                carve(totalBricks);
+            } banish {
+                carve(""Construction halted due to weather or lack of workers."");
+            }
+
+            /* =========================================
+               4. LOOPS, PERSIST & SHATTER
+               ========================================= */
+            stone block = 0;
+            carve(""--- Starting block transportation ---"");
+            
+            flow (block < 5) {
+                block = block + 1;
+                
+                judge (block == 3) {
+                    carve(""Block 3 is damaged. Persist! (Skipping...)"");
+                    persist;
+                }
+                
+                carve(""Moved block number:"");
+                carve(block);
+
+                judge (block == 4) {
+                    carve(""Quota reached for the day. Shatter! (Breaking...)"");
+                    shatter;
+                }
+            }
+            carve(""--- Transportation Complete ---"");
+
+            /* =========================================
+               5. SEMANTIC GUARDRAIL TESTS 
+               (Remove the comment slashes '/*' to test!)
+               ========================================= */
+            
+            /* Guardrail 1: Type Mismatch */
+             stone badMath = workers + greeting;
+
+            /* Guardrail 2: Function Signature Mismatch (Passing Papyrus to Stone) */
+             stone badCall = calculateBricks(5, greeting); 
+
+            /* Guardrail 3: Undeclared Variable */
+            carve(phantomVariable); 
+        ";
+
+        RunTest("NILELANG MASTER SUITE", masterScript);
     }
 
     static void RunTest(string testName, string sourceCode)
     {
         Console.WriteLine($"\n========== {testName} ==========");
-        Console.WriteLine("Source Code:");
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine(sourceCode.Trim());
         Console.ResetColor();
         Console.WriteLine("--------------------------------");
 
-        // 1. Lexical Analysis (The Scanner)
-        Scanner scanner = new Scanner();
-        var tokens = scanner.Scan(sourceCode);
+        try 
+        {
+            // 1. Scanner (Lexical Analysis)
+            Scanner scanner = new Scanner();
+            var tokens = scanner.Scan(sourceCode);
 
-        // 2. Syntax Analysis & AST Building (The Parser)
-        Parser parser = new Parser(tokens);
-        
-        // Capture the Abstract Syntax Tree!
-        List<Stmt> abstractSyntaxTree = parser.Parse();
-        
-        // Print out how many root nodes the tree contains
-        Console.WriteLine($"[AST Size]: Created {abstractSyntaxTree.Count} root statement nodes.");
-        // 3. AST Visualization (The AstPrinter)
-        AstPrinter.PrintTree(abstractSyntaxTree);
+            // 2. Parser (Syntax Analysis - Fail Fast!)
+            Parser parser = new Parser(tokens);
+            List<Stmt> abstractSyntaxTree = parser.Parse();
+
+            // 3. Print AST (Visualizing the Parser's Brain)
+            Console.WriteLine($"[AST Size]: Created {abstractSyntaxTree.Count} root nodes.");
+            AstPrinter.PrintTree(abstractSyntaxTree);
+
+            // 4. Evaluator (Semantic Analysis & Execution)
+            Evaluator evaluator = new Evaluator();
+            evaluator.Interpret(abstractSyntaxTree);
+        }
+        catch (Exception ex)
+        {
+            // If the Parser OR Semantic Analyzer catches a fatal error, it lands here!
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"\n[FATAL COMPILATION ERROR]:");
+            Console.WriteLine(ex.Message);
+            Console.ResetColor();
+        }
         
         Console.WriteLine("==========================================\n");
-    }
-
-    // ---------------------------------------------------------
-    // TEST CASES
-    // ---------------------------------------------------------
-
-    static string TestMath()
-    {
-        return @"
-            stone workers = 10 + 5 * 2;
-            water depth = (15.5 - 5.0) / 2.0;
-            workers = workers + 1;
-        ";
-    }
-
-    static string TestIfElse()
-    {
-        return @"
-            judge (workers >= 20 && depth != 0.0) {
-                stone bonus = 5;
-                workers = workers + bonus;
-            } banish {
-                workers = 0;
-            }
-        ";
-    }
-
-    static string TestLoop()
-    {
-        return @"
-            stone blocks = 0;
-            flow (blocks < 1000) {
-                blocks = blocks + 10;
-            }
-        ";
-    }
-
-    static string TestPrint()
-    {
-        return @"
-            papyrus message = ""Building the pyramid"";
-            carve(message);
-        ";
-    }
-
-    static string TestError()
-    {
-        return @"
-            stone missingSemicolon = 10
-            
-            papyrus safeStatement = ""The parser recovered!"";
-            
-            judge (brokenCondition {
-                stone x = 5;
-            }
-        ";
     }
 }

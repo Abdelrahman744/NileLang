@@ -49,10 +49,12 @@ public class UnaryExpr : Expr
 
 public class LiteralExpr : Expr
 {
+    public Token Token { get; }
     public object Value { get; }
 
-    public LiteralExpr(object value)
+    public LiteralExpr(Token token, object value)
     {
+        Token = token;
         Value = value;
     }
 }
@@ -141,5 +143,64 @@ public class WhileStmt : Stmt
     {
         Condition = condition;
         Body = body;
+    }
+
+    
+}
+
+
+public class BreakStmt : Stmt
+{
+    public Token Keyword { get; }
+    public BreakStmt(Token keyword) { Keyword = keyword; }
+}
+
+public class ContinueStmt : Stmt
+{
+    public Token Keyword { get; }
+    public ContinueStmt(Token keyword) { Keyword = keyword; }
+}
+
+// --- Function Statements ---
+public class FunctionStmt : Stmt
+{
+    public Token Name { get; }
+    public List<Token> Parameters { get; }
+    public List<Token> ParamTypes { get; } // For Semantic Signature Matching!
+    public BlockStmt Body { get; }
+
+    public FunctionStmt(Token name, List<Token> parameters, List<Token> paramTypes, BlockStmt body)
+    {
+        Name = name;
+        Parameters = parameters;
+        ParamTypes = paramTypes;
+        Body = body;
+    }
+}
+
+public class ReturnStmt : Stmt
+{
+    public Token Keyword { get; }
+    public Expr Value { get; } // Can be null if returning nothing
+
+    public ReturnStmt(Token keyword, Expr value)
+    {
+        Keyword = keyword;
+        Value = value;
+    }
+}
+
+// --- Function Calls (Expression) ---
+public class CallExpr : Expr
+{
+    public Expr Callee { get; } // The name of the function
+    public Token Paren { get; } // Used for error line numbers
+    public List<Expr> Arguments { get; }
+
+    public CallExpr(Expr callee, Token paren, List<Expr> arguments)
+    {
+        Callee = callee;
+        Paren = paren;
+        Arguments = arguments;
     }
 }

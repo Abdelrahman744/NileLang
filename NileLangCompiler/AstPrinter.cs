@@ -49,7 +49,11 @@ public static class AstPrinter
             Console.WriteLine($"{indent}└── Flow (While): Condition {FormatExpr(w.Condition)}");
             Console.WriteLine($"{indent}    Do:");
             PrintStatement(w.Body, indent + "    ");
-        }
+        }else if (stmt is BreakStmt) Console.WriteLine($"{indent}└── Shatter (Break)");
+        else if (stmt is ContinueStmt) Console.WriteLine($"{indent}└── Persist (Continue)");
+        else if (stmt is FunctionStmt) Console.WriteLine($"{indent}└── Dynasty (Function): {((FunctionStmt)stmt).Name.Lexeme}");
+        else if (stmt is ReturnStmt) Console.WriteLine($"{indent}└── Tribute (Return): {FormatExpr(((ReturnStmt)stmt).Value)}");
+
     }
 
     // Formats math and logic into LISP-like nested text: e.g., (+ 10 (* 5 2))
@@ -60,6 +64,7 @@ public static class AstPrinter
         if (expr is UnaryExpr u) return $"({u.Operator.Lexeme} {FormatExpr(u.Right)})";
         if (expr is LiteralExpr lit) return lit.Value?.ToString() ?? "null";
         if (expr is VariableExpr varExpr) return varExpr.Name.Lexeme;
+        if (expr is CallExpr c) return $"{((VariableExpr)c.Callee).Name.Lexeme}(...)";
         return "UnknownExpr";
     }
 }

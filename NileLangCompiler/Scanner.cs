@@ -10,12 +10,12 @@ public class Scanner
 {
     private static readonly string _pattern =
         @"(?<Comment>(//.*?$)|(/\*[\s\S]*?\*/))|" +
-        @"(?<Keyword>\b(temple|reign|stone|water|papyrus|maat|judge|banish|flow|dynasty|carve|listen|tribute)\b)|" +
+        @"(?<Keyword>\b(temple|reign|stone|water|papyrus|maat|judge|banish|flow|dynasty|carve|listen|tribute|shatter|persist|true|false)\b)|" +
         @"(?<Float>\d+\.\d+)|" +
         @"(?<Integer>\d+)|" +
         @"(?<Identifier>[A-Za-z]\w*)|" +
         @"(?<Operator>(==|!=|>=|<=|\+\+|--|&&|\|\||[=><+\-!*/]))|" +
-        @"(?<Symbol>[{};()])|" +
+        @"(?<Symbol>[{};(),])|" +
         @"(?<StringLiteral>""(?:[^""\\]|\\.)*"")|" +
         @"(?<Whitespace>\s+)|"+
         @"(?<Unknown>.)";
@@ -104,6 +104,7 @@ public class Scanner
                     "(" => TokenType.LeftParen,
                     ")" => TokenType.RightParen,
                     ";" => TokenType.Semicolon,
+                    "," => TokenType.Comma,
                     _ => TokenType.Unknown
                 };
             }else if (match.Groups["Unknown"].Success)

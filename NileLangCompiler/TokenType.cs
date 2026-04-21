@@ -24,6 +24,10 @@ public enum TokenType
     Temple, Reign, Stone, Water ,Papyrus, Maat, Judge, Banish, Flow, Dynasty, Carve, Listen, Tribute,
 
 
+     
+    Comma,    // ,
+    Shatter,    // break
+    Persist,    // continue
 
     // Other Tokens
     Identifier, 
@@ -48,7 +52,8 @@ public enum TokenType
     Divide,         
     And,             // &&  
     Or,              // ||   
-
+    True,
+    False,
     LeftBrace,       // {
     RightBrace,      // }
     LeftParen,       // (

@@ -13,11 +13,12 @@ public class Parser
         _tokens = tokens;
     }
 
-    // ==========================================
+
+
     // 1. HELPER TOOLS
-    // ==========================================
-    private Token Peek() => _tokens[_current];
-    private Token Previous() => _tokens[_current - 1];
+  
+    private Token Peek() => _tokens[_current]; // lookahead token
+    private Token Previous() => _tokens[_current - 1]; // recently consumed token
     private bool IsAtEnd() => Peek().Type == TokenType.EOF;
 
     private bool Check(TokenType type)
@@ -26,7 +27,7 @@ public class Parser
         return Peek().Type == type;
     }
 
-    private Token Advance()
+    private Token Advance() // move forward and return the consumed token
     {
         if (!IsAtEnd()) _current++;
         return Previous();
@@ -48,9 +49,10 @@ public class Parser
     return false;
 }
 
-    // ==========================================
-    // 2. STATEMENTS (Return Stmt objects)
-    // ==========================================
+// 2. STATEMENTS (Return Stmt objects)
+  
+
+// program 
 
   public List<Stmt> Parse()
     {
@@ -58,19 +60,15 @@ public class Parser
         
         while (!IsAtEnd())
         {
-            // FAIL-FAST MODE:
-            // We no longer catch errors. If ParseStatement() encounters a missing 
-            // semicolon or bad syntax, it will throw an Exception, completely 
-            // break the loop, and halt the compiler immediately!
             statements.Add(ParseStatement());
         }
         
         return statements;
     }
+
+    // router for statements 
     private Stmt ParseStatement()
     {
-        if (Check(TokenType.Dynasty)) return ParseFunctionDeclaration(); 
-        if (Check(TokenType.Tribute)) return ParseReturnStatement();
         
         if (Check(TokenType.Stone) || Check(TokenType.Water) || Check(TokenType.Papyrus) || Check(TokenType.Maat))
             return ParseVariableDeclaration();
@@ -81,63 +79,13 @@ public class Parser
         if (Check(TokenType.Identifier)) return ParseAssignmentStatement();
         if (Check(TokenType.Shatter)) return ParseBreakStatement();
         if (Check(TokenType.Persist)) return ParseContinueStatement();
+        if (Check(TokenType.Dynasty)) return ParseFunctionDeclaration(); 
+        if (Check(TokenType.Tribute)) return ParseReturnStatement();
 
         throw new Exception($"Syntax Error: Unrecognized statement. Found '{Peek().Lexeme}'");
     }
-  private Stmt ParseFunctionDeclaration()
-{
-    Advance(); // Consume 'dynasty' keyword
-    Token name = Expect(TokenType.Identifier, "Expected function name.");
-    Expect(TokenType.LeftParen, "Expected '(' after function name.");
 
-    List<Token> paramTypes = new List<Token>();
-    List<Token> parameters = new List<Token>();
 
-    // Check if there are any parameters to parse
-    if (!Check(TokenType.RightParen))
-    {
-        do
-        {
-            // 1. Check for a valid type (stone, water, papyrus, maat)
-            if (!(Check(TokenType.Stone) || Check(TokenType.Water) || 
-                  Check(TokenType.Papyrus) || Check(TokenType.Maat)))
-            {
-                throw new Exception($"Syntax Error [Line {Peek().Line}]: Expected a valid parameter type. Found '{Peek().Lexeme}'.");
-            }
-
-            // 2. Capture the metadata for the Symbol Table
-            paramTypes.Add(Advance()); 
-            parameters.Add(Expect(TokenType.Identifier, "Expected parameter name."));
-
-            // 3. If there's a comma, we MUST have another parameter
-        } while (Match(TokenType.Comma)); 
-    }
-
-    Expect(TokenType.RightParen, "Expected ')' after parameters.");
-
-    if (!Check(TokenType.LeftBrace)) 
-        throw new Exception($"Syntax Error [Line {Peek().Line}]: Expected '{{' before function body.");
-
-    // Functions must have a block body for Scope Resolution
-    BlockStmt body = (BlockStmt)ParseBlock(); 
-
-    return new FunctionStmt(name, parameters, paramTypes, body);
-}
-
-    private Stmt ParseReturnStatement()
-    {
-        Token keyword = Advance(); // Consume 'tribute'
-        Expr value = null;
-        
-        // If there is an expression before the semicolon, parse it
-        if (!Check(TokenType.Semicolon))
-        {
-            value = ParseExpression();
-        }
-        
-        Expect(TokenType.Semicolon, "Expected ';' after return value.");
-        return new ReturnStmt(keyword, value);
-    }
     
     private Stmt ParseVariableDeclaration()
     {
@@ -176,17 +124,19 @@ public class Parser
 
     private Stmt ParseIfStatement()
     {
-        Advance(); // 'judge'
+        Advance(); // judge
         Expect(TokenType.LeftParen, "Expected '(' after 'judge'.");
         Expr condition = ParseExpression();
         Expect(TokenType.RightParen, "Expected ')' after condition.");
         
         Stmt thenBranch = ParseBlock();
-        Stmt elseBranch = null;
 
+        Stmt elseBranch = null;
+          
+        // optional 
         if (Check(TokenType.Banish))
         {
-            Advance(); // 'banish'
+            Advance(); // banish
             elseBranch = ParseBlock();
         }
 
@@ -195,7 +145,7 @@ public class Parser
 
     private Stmt ParseWhileStatement()
     {
-        Advance(); // 'flow'
+        Advance(); // flow
         Expect(TokenType.LeftParen, "Expected '(' after 'flow'.");
         Expr condition = ParseExpression();
         Expect(TokenType.RightParen, "Expected ')' after condition.");
@@ -205,7 +155,7 @@ public class Parser
 
     private Stmt ParsePrintStatement()
     {
-        Advance(); // 'carve'
+        Advance(); // carve
         Expect(TokenType.LeftParen, "Expected '(' after 'carve'.");
         Expr value = ParseExpression();
         Expect(TokenType.RightParen, "Expected ')' after value.");
@@ -213,19 +163,79 @@ public class Parser
         return new PrintStmt(value);
     }
 
-    // ==========================================
+
+
+    private Stmt ParseFunctionDeclaration()
+{
+    Advance(); // dynasty
+    Token name = Expect(TokenType.Identifier, "Expected function name.");
+    Expect(TokenType.LeftParen, "Expected '(' after function name.");
+
+    List<Token> paramTypes = new List<Token>();
+    List<Token> parameters = new List<Token>();
+
+    // Check if there are any parameters to parse
+    if (!Check(TokenType.RightParen)) 
+    {
+        do
+        {
+            // 1. Check for a valid type (stone, water, papyrus, maat)
+
+            if (!(Check(TokenType.Stone) || Check(TokenType.Water) || 
+                  Check(TokenType.Papyrus) || Check(TokenType.Maat)))
+            {
+                throw new Exception($"Syntax Error [Line {Peek().Line}]: Expected a valid parameter type. Found '{Peek().Lexeme}'.");
+            }
+
+            // 2. Capture the metadata for the Symbol Table
+
+            paramTypes.Add(Advance()); 
+            parameters.Add(Expect(TokenType.Identifier, "Expected parameter name."));
+
+            // 3. If there's a comma, we MUST have another parameter
+        } while (Match(TokenType.Comma)); 
+    }
+
+    Expect(TokenType.RightParen, "Expected ')' after parameters.");
+
+    if (!Check(TokenType.LeftBrace)) 
+        throw new Exception($"Syntax Error [Line {Peek().Line}]: Expected '{{' before function body.");
+
+    // Functions must have a block body for Scope Resolution
+    BlockStmt body = (BlockStmt)ParseBlock(); 
+
+    return new FunctionStmt(name, parameters, paramTypes, body);
+}
+
+    private Stmt ParseReturnStatement() 
+    {
+        Token keyword = Advance(); // tribute
+        Expr value = null; 
+        
+        // If there is an expression before the semicolon, parse it
+        if (!Check(TokenType.Semicolon))
+        {
+            value = ParseExpression();
+        }
+        
+        Expect(TokenType.Semicolon, "Expected ';' after return value.");
+        return new ReturnStmt(keyword, value);
+    }
+
+
+
     // 3. EXPRESSIONS (Return Expr objects)
-    // ==========================================
+  
 
     private Expr ParseExpression() => ParseLogicOr();
 
     private Expr ParseLogicOr()
     {
-        Expr expr = ParseLogicAnd();
-        while (Check(TokenType.Or))
+        Expr expr = ParseLogicAnd(); 
+        while (Check(TokenType.Or)) 
         {
-            Token op = Advance();
-            Expr right = ParseLogicAnd();
+            Token op = Advance(); // or 
+            Expr right = ParseLogicAnd(); 
             expr = new LogicalExpr(expr, op, right);
         }
         return expr;
@@ -245,7 +255,7 @@ public class Parser
 
     private Expr ParseEquality()
     {
-        Expr expr = ParseComparison();
+        Expr expr = ParseComparison(); 
         while (Check(TokenType.Equals) || Check(TokenType.NotEquals))
         {
             Token op = Advance();
@@ -257,12 +267,12 @@ public class Parser
 
     private Expr ParseComparison()
     {
-        Expr expr = ParseTerm();
+        Expr expr = ParseTerm(); 
         while (Check(TokenType.GreaterThan) || Check(TokenType.GreaterOrEqual) || 
                Check(TokenType.LessThan) || Check(TokenType.LessOrEqual))
         {
             Token op = Advance();
-            Expr right = ParseTerm();
+            Expr right = ParseTerm(); 
             expr = new BinaryExpr(expr, op, right);
         }
         return expr;
@@ -275,7 +285,7 @@ public class Parser
         {
             Token op = Advance();
             Expr right = ParseFactor();
-            expr = new BinaryExpr(expr, op, right); // <--- Building the Tree!
+            expr = new BinaryExpr(expr, op, right); 
         }
         return expr;
     }
@@ -310,17 +320,17 @@ public class Parser
         // Check if there is a parenthesis immediately after the name
         while (Check(TokenType.LeftParen))
         {
-            Token paren = Advance(); // Consume '('
+            Token paren = Advance(); // Consume (
             List<Expr> arguments = new List<Expr>();
             
-            // Read arguments if any exist
+        
             if (!Check(TokenType.RightParen))
             {
                 do
                 {
                     arguments.Add(ParseExpression());
-                    if (Check(TokenType.Comma)) Advance();
-                    else break;
+                    if (Check(TokenType.Comma)) Advance(); 
+                    else break; 
                 } while (true);
             }
             
@@ -333,18 +343,18 @@ public class Parser
 
     private Expr ParsePrimary()
     {
-        if (Check(TokenType.True)) return new LiteralExpr(Advance(), true);
+        if (Check(TokenType.True)) return new LiteralExpr(Advance(), true); 
         if (Check(TokenType.False)) return new LiteralExpr(Advance(), false);
         if (Check(TokenType.Integer))
         {
             Token token = Advance();
-            // We pass the token AND the parsed int value
+            
+            // token , value 
             return new LiteralExpr(token, int.Parse(token.Lexeme));
         }
         if (Check(TokenType.Float))
         {
             Token token = Advance();
-            // We pass the token AND the parsed double value
             return new LiteralExpr(token, double.Parse(token.Lexeme));
         }
 
@@ -360,7 +370,7 @@ public class Parser
         {
             return new VariableExpr(Advance());
         }
-       if (Check(TokenType.LeftParen))
+        if (Check(TokenType.LeftParen))
         {
             Advance();
             Expr expr = ParseExpression();
@@ -373,7 +383,7 @@ public class Parser
 
     private Stmt ParseBreakStatement()
     {
-        Token keyword = Advance(); // Consume 'shatter'
+        Token keyword = Advance(); // Consume shatter
         Expect(TokenType.Semicolon, "Expected ';' after shatter statement.");
         return new BreakStmt(keyword);
     }
@@ -385,3 +395,4 @@ public class Parser
         return new ContinueStmt(keyword);
     }
 }
+

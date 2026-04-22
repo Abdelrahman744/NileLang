@@ -2,9 +2,9 @@ using System.Collections.Generic;
 
 namespace NileLangCompiler;
 
-// ==========================================
+
 // 1. EXPRESSIONS (Things that produce a value)
-// ==========================================
+
 public abstract class Expr { }
 
 public class BinaryExpr : Expr
@@ -69,9 +69,9 @@ public class VariableExpr : Expr
     }
 }
 
-// ==========================================
+
 // 2. STATEMENTS (Actions and Control Flow)
-// ==========================================
+
 public abstract class Stmt { }
 
 public class VarDeclStmt : Stmt
@@ -124,7 +124,7 @@ public class IfStmt : Stmt
 {
     public Expr Condition { get; }
     public Stmt ThenBranch { get; }
-    public Stmt ElseBranch { get; } // Can be null
+    public Stmt ElseBranch { get; } // Can be null , optional
 
     public IfStmt(Expr condition, Stmt thenBranch, Stmt elseBranch)
     {
@@ -161,12 +161,12 @@ public class ContinueStmt : Stmt
     public ContinueStmt(Token keyword) { Keyword = keyword; }
 }
 
-// --- Function Statements ---
+// Function Statements
 public class FunctionStmt : Stmt
 {
     public Token Name { get; }
     public List<Token> Parameters { get; }
-    public List<Token> ParamTypes { get; } // For Semantic Signature Matching!
+    public List<Token> ParamTypes { get; } 
     public BlockStmt Body { get; }
 
     public FunctionStmt(Token name, List<Token> parameters, List<Token> paramTypes, BlockStmt body)
@@ -181,7 +181,7 @@ public class FunctionStmt : Stmt
 public class ReturnStmt : Stmt
 {
     public Token Keyword { get; }
-    public Expr Value { get; } // Can be null if returning nothing
+    public Expr Value { get; }
 
     public ReturnStmt(Token keyword, Expr value)
     {
@@ -190,11 +190,11 @@ public class ReturnStmt : Stmt
     }
 }
 
-// --- Function Calls (Expression) ---
+//  Function Calls (Expression) 
 public class CallExpr : Expr
 {
     public Expr Callee { get; } // The name of the function
-    public Token Paren { get; } // Used for error line numbers
+    public Token Paren { get; } 
     public List<Expr> Arguments { get; }
 
     public CallExpr(Expr callee, Token paren, List<Expr> arguments)

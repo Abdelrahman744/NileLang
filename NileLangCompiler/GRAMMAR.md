@@ -81,7 +81,7 @@
 <Unary>         →  ( ! | - ) <Unary>
                 |  <Call>
 
-<Call>          →  <Primary> [ ( [ <ArgList> ] ) ]
+<Call>          →  <Primary> [ ( [ <ArgList> ] ) ] 
 <ArgList>       →  <Expr> { , <Expr> }
 
 <Primary>       →  INTEGER

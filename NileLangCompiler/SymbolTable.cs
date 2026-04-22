@@ -5,13 +5,12 @@ namespace NileLangCompiler;
 
 public class SymbolTable
 {
-    // The Map now stores the Metadata row, not just a raw object!
-    private Stack<Dictionary<string, IdentifierInfo>> _scopes;
+    private Stack<Dictionary<string, IdentifierInfo>> _scopes = new Stack<Dictionary<string, IdentifierInfo>>();
 
     public SymbolTable()
     {
-        _scopes = new Stack<Dictionary<string, IdentifierInfo>>();
-        PushScope();
+        // Global scope
+        _scopes.Push(new Dictionary<string, IdentifierInfo>());
     }
 
     public void PushScope()
@@ -21,31 +20,42 @@ public class SymbolTable
 
     public void PopScope()
     {
-        if (_scopes.Count > 1)
+        if (_scopes.Count > 1) 
         {
             _scopes.Pop();
         }
         else
         {
-            Console.WriteLine("Semantic Warning: Attempt to pop global scope ignored.");
+            throw new Exception("Compiler Error: Cannot pop global scope.");
         }
     }
 
-    // Updated to accept the full metadata row
     public void Declare(IdentifierInfo info)
     {
         var currentScope = _scopes.Peek();
-
         if (currentScope.ContainsKey(info.Name))
         {
-            // Now we can provide the exact line number of the error!
-            throw new Exception($"Semantic Error: Redeclaration of '{info.Name}' at line {info.DeclaredLine}");
+            IdentifierInfo existingInfo = currentScope[info.Name];
+            // Uses .Line to report exactly where the duplicate was found
+            throw new Exception($"Semantic Error: Variable '{info.Name}' was already declared in this scope on line {existingInfo.Line}.");
         }
-
         currentScope[info.Name] = info;
     }
 
-    // Now returns the full metadata row
+    public void Assign(string name, object value)
+    {
+        foreach (var scope in _scopes)
+        {
+            if (scope.ContainsKey(name)) 
+                                             
+            {
+                scope[name].Value = value;
+                return;
+            }
+        }
+        throw new Exception($"Semantic Error: Variable '{name}' has not been declared.");
+    }
+
     public IdentifierInfo Lookup(string name)
     {
         foreach (var scope in _scopes)
@@ -55,21 +65,6 @@ public class SymbolTable
                 return scope[name];
             }
         }
-
         throw new Exception($"Semantic Error: Variable '{name}' has not been declared.");
-    }
-
-    public void Assign(string name, object newValue)
-    {
-        foreach (var scope in _scopes)
-        {
-            if (scope.ContainsKey(name))
-            {
-                scope[name].Value = newValue;
-                return;
-            }
-        }
-
-        throw new Exception($"Semantic Error: Cannot assign to undeclared variable '{name}'.");
     }
 }

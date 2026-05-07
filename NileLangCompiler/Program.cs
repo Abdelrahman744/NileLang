@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.IO;
 using System.Collections.Generic;
 using NileLangCompiler;
 
@@ -48,7 +49,99 @@ class Program
             stone dummy = build(badArg);
         ";
         RunDiagnostic("EXAMPLE 4: Signature Mismatch", code4);
+
+
+        // =========================================================
+        // FULL TRANSPILATION DEMO
+        // =========================================================
+        Console.WriteLine("\n\n##################################################");
+        Console.WriteLine("       FULL TRANSPILATION: NileLang → C#");
+        Console.WriteLine("##################################################\n");
+
+        string fullProgram = @"
+            dynasty calculate(stone a, stone b) {
+                tribute a * b;
+            }
+
+            stone result = calculate(10, 5);
+            carve(result);
+
+            judge (result > 30) {
+                carve(""Big number!"");
+            } banish {
+                carve(""Small number."");
+            }
+
+            stone counter = 0;
+            flow (counter < 5) {
+                carve(counter);
+                counter = counter + 1;
+            }
+        ";
+
+        RunFullTranspile(fullProgram);
     }
+
+
+    static void RunFullTranspile(string sourceCode)
+    {
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("[ NileLang Source ]\n");
+        Console.ResetColor();
+        Console.WriteLine(sourceCode.Trim());
+        Console.WriteLine("\n--------------------------------------------------\n");
+
+        try
+        {
+            // 1. Lexical Analysis (Scanner)
+            Scanner scanner = new Scanner();
+            var tokens = scanner.Scan(sourceCode);
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Phase 1  SCANNING ............... PASSED");
+            Console.ResetColor();
+
+            // 2. Syntax Analysis (Parser)
+            Parser parser = new Parser(tokens);
+            List<Stmt> ast = parser.Parse();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Phase 2  PARSING ................ PASSED");
+            Console.ResetColor();
+
+            // 3. Semantic Analysis
+            SemanticAnalyzer analyzer = new SemanticAnalyzer();
+            analyzer.Analyze(ast);
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Phase 3  SEMANTIC ANALYSIS ...... PASSED");
+            Console.ResetColor();
+
+            // 4. Code Generation (Transpile to C#)
+            CSharpEmitter emitter = new CSharpEmitter();
+            string csharpCode = emitter.Emit(ast);
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Phase 4  CODE GENERATION ........ PASSED");
+            Console.ResetColor();
+
+            // Output to console
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("\n[ Generated C# Code ]\n");
+            Console.ResetColor();
+            Console.WriteLine(csharpCode);
+
+            // Output to file
+            string outputPath = Path.Combine(Directory.GetCurrentDirectory(), "output.cs");
+            File.WriteAllText(outputPath, csharpCode);
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine($"C# code written to: {outputPath}");
+            Console.ResetColor();
+        }
+        catch (Exception ex)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"\n[ TRANSPILATION FAILED ]\n{ex.Message}");
+            Console.ResetColor();
+        }
+    }
+
 
     static void RunDiagnostic(string testName, string sourceCode)
     {

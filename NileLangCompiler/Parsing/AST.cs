@@ -2,8 +2,9 @@ using System.Collections.Generic;
 
 namespace NileLangCompiler;
 
-
-// 1. EXPRESSIONS (Things that produce a value)
+// ═════════════════════════════════════════════════════════════════
+//  1. EXPRESSIONS (nodes that produce a value)
+// ═════════════════════════════════════════════════════════════════
 
 public abstract class Expr { }
 
@@ -69,8 +70,23 @@ public class VariableExpr : Expr
     }
 }
 
+public class CallExpr : Expr
+{
+    public Expr Callee { get; }
+    public Token Paren { get; }
+    public List<Expr> Arguments { get; }
 
-// 2. STATEMENTS (Actions and Control Flow)
+    public CallExpr(Expr callee, Token paren, List<Expr> arguments)
+    {
+        Callee = callee;
+        Paren = paren;
+        Arguments = arguments;
+    }
+}
+
+// ═════════════════════════════════════════════════════════════════
+//  2. STATEMENTS (nodes that perform actions / control flow)
+// ═════════════════════════════════════════════════════════════════
 
 public abstract class Stmt { }
 
@@ -124,7 +140,7 @@ public class IfStmt : Stmt
 {
     public Expr Condition { get; }
     public Stmt ThenBranch { get; }
-    public Stmt ElseBranch { get; } // Can be null , optional
+    public Stmt ElseBranch { get; } // Can be null (optional)
 
     public IfStmt(Expr condition, Stmt thenBranch, Stmt elseBranch)
     {
@@ -144,10 +160,7 @@ public class WhileStmt : Stmt
         Condition = condition;
         Body = body;
     }
-
-    
 }
-
 
 public class BreakStmt : Stmt
 {
@@ -161,12 +174,11 @@ public class ContinueStmt : Stmt
     public ContinueStmt(Token keyword) { Keyword = keyword; }
 }
 
-// Function Statements
 public class FunctionStmt : Stmt
 {
     public Token Name { get; }
     public List<Token> Parameters { get; }
-    public List<Token> ParamTypes { get; } 
+    public List<Token> ParamTypes { get; }
     public BlockStmt Body { get; }
 
     public FunctionStmt(Token name, List<Token> parameters, List<Token> paramTypes, BlockStmt body)
@@ -187,20 +199,5 @@ public class ReturnStmt : Stmt
     {
         Keyword = keyword;
         Value = value;
-    }
-}
-
-//  Function Calls (Expression) 
-public class CallExpr : Expr
-{
-    public Expr Callee { get; } // The name of the function
-    public Token Paren { get; } 
-    public List<Expr> Arguments { get; }
-
-    public CallExpr(Expr callee, Token paren, List<Expr> arguments)
-    {
-        Callee = callee;
-        Paren = paren;
-        Arguments = arguments;
     }
 }

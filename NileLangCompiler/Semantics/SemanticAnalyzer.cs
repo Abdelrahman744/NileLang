@@ -3,10 +3,14 @@ using System.Collections.Generic;
 
 namespace NileLangCompiler;
 
+/// <summary>
+/// Walks the AST and validates types, scopes, and control flow
+/// without executing any code.
+/// </summary>
 public class SemanticAnalyzer
 {
-    private SymbolTable _environment = new SymbolTable(); 
-    private int _loopDepth = 0; // Tracks if we are inside a flow loop 
+    private SymbolTable _environment = new SymbolTable();
+    private int _loopDepth = 0; // Tracks if we are inside a flow loop
 
     public void Analyze(List<Stmt> statements)
     {
@@ -16,9 +20,10 @@ public class SemanticAnalyzer
         }
     }
 
-    
-    // 1. CHECK STATEMENTS (No execution, just validation)
-    
+    // ═══════════════════════════════════════════════════════════
+    //  STATEMENT VALIDATION
+    // ═══════════════════════════════════════════════════════════
+
     private void CheckStatement(Stmt stmt)
     {
         if (stmt is VarDeclStmt v)
@@ -26,19 +31,18 @@ public class SemanticAnalyzer
             TokenType valueType = CheckExpression(v.Initializer);
             CheckTypeMatch(v.Name.Lexeme, v.TypeKeyword.Type, valueType);
 
-            // Declare it in the symbol table with its TYPE, but NO VALUE!
             IdentifierInfo newRow = new IdentifierInfo(v.Name.Lexeme, v.TypeKeyword.Type, v.Name.Line, null);
             _environment.Declare(newRow);
         }
         else if (stmt is AssignStmt a)
         {
             TokenType valueType = CheckExpression(a.Value);
-            IdentifierInfo variable = _environment.Lookup(a.Name.Lexeme); // Throws error if undeclared
+            IdentifierInfo variable = _environment.Lookup(a.Name.Lexeme);
             CheckTypeMatch(a.Name.Lexeme, variable.Type, valueType);
         }
         else if (stmt is PrintStmt p)
         {
-            CheckExpression(p.Expression); 
+            CheckExpression(p.Expression);
         }
         else if (stmt is BlockStmt b)
         {
@@ -46,7 +50,7 @@ public class SemanticAnalyzer
             foreach (var statement in b.Statements) CheckStatement(statement);
             _environment.PopScope();
         }
-        else if (stmt is IfStmt ifStmt) // FIX: Changed 'i' to 'ifStmt'
+        else if (stmt is IfStmt ifStmt)
         {
             CheckExpression(ifStmt.Condition);
             CheckStatement(ifStmt.ThenBranch);
@@ -55,9 +59,8 @@ public class SemanticAnalyzer
         else if (stmt is WhileStmt w)
         {
             CheckExpression(w.Condition);
-            
             _loopDepth++;
-            CheckStatement(w.Body); // Check the body EXACTLY ONCE. Do not loop!
+            CheckStatement(w.Body);
             _loopDepth--;
         }
         else if (stmt is BreakStmt brk)
@@ -79,7 +82,7 @@ public class SemanticAnalyzer
                 IdentifierInfo paramInfo = new IdentifierInfo(f.Parameters[i].Lexeme, f.ParamTypes[i].Type, f.Parameters[i].Line, null);
                 _environment.Declare(paramInfo);
             }
-            CheckStatement(f.Body); 
+            CheckStatement(f.Body);
             _environment.PopScope();
         }
         else if (stmt is ReturnStmt r)
@@ -88,9 +91,10 @@ public class SemanticAnalyzer
         }
     }
 
-    // ==========================================
-    // 2. CHECK EXPRESSIONS (Determine Data Types)
-    // ==========================================
+    // ═══════════════════════════════════════════════════════════
+    //  EXPRESSION TYPE-CHECKING
+    // ═══════════════════════════════════════════════════════════
+
     private TokenType CheckExpression(Expr expr)
     {
         if (expr is LiteralExpr l)
@@ -108,7 +112,7 @@ public class SemanticAnalyzer
         {
             CheckExpression(log.Left);
             CheckExpression(log.Right);
-            return TokenType.Maat; 
+            return TokenType.Maat;
         }
         if (expr is UnaryExpr u)
         {
@@ -119,14 +123,14 @@ public class SemanticAnalyzer
             TokenType left = CheckExpression(b.Left);
             TokenType right = CheckExpression(b.Right);
 
-            // GUARDRAIL: Prevent adding strings to integers!
+            // Prevent adding mismatched types (e.g., string + int)
             if (b.Operator.Type == TokenType.Plus)
             {
                 if (left != right) throw new Exception($"Semantic Error: Type Mismatch. Cannot add {left} to {right}.");
             }
             else if (b.Operator.Type == TokenType.Minus || b.Operator.Type == TokenType.Multiply || b.Operator.Type == TokenType.Divide)
             {
-                if ((left != TokenType.Stone && left != TokenType.Water) || 
+                if ((left != TokenType.Stone && left != TokenType.Water) ||
                     (right != TokenType.Stone && right != TokenType.Water))
                 {
                     throw new Exception($"Semantic Error: Math operation '{b.Operator.Lexeme}' requires numbers.");
@@ -134,7 +138,7 @@ public class SemanticAnalyzer
             }
 
             // Relational operators return boolean
-            if (b.Operator.Type == TokenType.Equals || b.Operator.Type == TokenType.NotEquals || 
+            if (b.Operator.Type == TokenType.Equals || b.Operator.Type == TokenType.NotEquals ||
                 b.Operator.Type == TokenType.GreaterThan || b.Operator.Type == TokenType.LessThan)
             {
                 return TokenType.Maat;
@@ -144,7 +148,7 @@ public class SemanticAnalyzer
         }
         if (expr is CallExpr c)
         {
-            IdentifierInfo callee = _environment.Lookup(((VariableExpr)c.Callee).Name.Lexeme); 
+            IdentifierInfo callee = _environment.Lookup(((VariableExpr)c.Callee).Name.Lexeme);
             if (!(callee.Value is FunctionStmt function)) throw new Exception("Semantic Error: Can only call defined functions.");
 
             if (c.Arguments.Count != function.Parameters.Count)
@@ -156,21 +160,24 @@ public class SemanticAnalyzer
                 TokenType paramType = function.ParamTypes[i].Type;
                 CheckTypeMatch(function.Name.Lexeme, paramType, argType);
             }
-            
+
             return TokenType.Stone;
         }
-        
+
         throw new Exception("Unknown expression type.");
     }
 
-    // ==========================================
-    // 3. HELPERS
-    // ==========================================
+    // ═══════════════════════════════════════════════════════════
+    //  HELPERS
+    // ═══════════════════════════════════════════════════════════
+
+    /// <summary> Validates that the actual type matches the expected type. </summary>
     private void CheckTypeMatch(string context, TokenType expected, TokenType actual)
     {
-        if ((expected == TokenType.Stone || expected == TokenType.Water) && 
+        // Allow stone ↔ water interchangeability (both are numeric)
+        if ((expected == TokenType.Stone || expected == TokenType.Water) &&
             (actual == TokenType.Stone || actual == TokenType.Water)) return;
-            
+
         if (expected == actual) return;
 
         throw new Exception($"Semantic Error: Type Mismatch in '{context}'. Expected {expected}, got {actual}.");

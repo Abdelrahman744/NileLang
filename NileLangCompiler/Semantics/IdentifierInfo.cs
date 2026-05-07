@@ -1,9 +1,12 @@
 namespace NileLangCompiler;
 
+/// <summary>
+/// Stores metadata for a declared identifier (variable or function).
+/// </summary>
 public class IdentifierInfo
 {
     public string Name { get; }
-    public TokenType Type { get; } 
+    public TokenType Type { get; }
     public int Line { get; }
     public object Value { get; set; }
 

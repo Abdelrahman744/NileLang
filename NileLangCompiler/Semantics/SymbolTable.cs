@@ -3,14 +3,17 @@ using System.Collections.Generic;
 
 namespace NileLangCompiler;
 
+/// <summary>
+/// Scope-aware symbol table using a stack of dictionaries.
+/// Each scope maps variable names to their metadata.
+/// </summary>
 public class SymbolTable
 {
     private Stack<Dictionary<string, IdentifierInfo>> _scopes = new Stack<Dictionary<string, IdentifierInfo>>();
 
     public SymbolTable()
     {
-        // Global scope
-        _scopes.Push(new Dictionary<string, IdentifierInfo>());
+        _scopes.Push(new Dictionary<string, IdentifierInfo>()); // Global scope
     }
 
     public void PushScope()
@@ -20,7 +23,7 @@ public class SymbolTable
 
     public void PopScope()
     {
-        if (_scopes.Count > 1) 
+        if (_scopes.Count > 1)
         {
             _scopes.Pop();
         }
@@ -36,7 +39,6 @@ public class SymbolTable
         if (currentScope.ContainsKey(info.Name))
         {
             IdentifierInfo existingInfo = currentScope[info.Name];
-            // Uses .Line to report exactly where the duplicate was found
             throw new Exception($"Semantic Error: Variable '{info.Name}' was already declared in this scope on line {existingInfo.Line}.");
         }
         currentScope[info.Name] = info;
@@ -46,8 +48,7 @@ public class SymbolTable
     {
         foreach (var scope in _scopes)
         {
-            if (scope.ContainsKey(name)) 
-                                             
+            if (scope.ContainsKey(name))
             {
                 scope[name].Value = value;
                 return;

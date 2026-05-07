@@ -22,3 +22,5 @@
 # Hides hidden files created by Windows or Mac
 .DS_Store
 Thumbs.db
+# Generated output file
+output.cs

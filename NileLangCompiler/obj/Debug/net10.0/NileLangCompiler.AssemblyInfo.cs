@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NileLangCompiler")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e26a307e54018ef5f0e709460db2c488a5a7f011")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+113b82c99178d22bcf179d75ff00a46f44af8a4b")]
 [assembly: System.Reflection.AssemblyProductAttribute("NileLangCompiler")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NileLangCompiler")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

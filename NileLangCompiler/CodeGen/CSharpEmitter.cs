@@ -17,6 +17,7 @@ public class CSharpEmitter
     /// Takes the full AST and produces a complete, compilable C# source file.
     /// Dynasty functions become static methods; everything else goes into Main().
     /// </summary>
+    
     public string Emit(List<Stmt> statements)
     {
         // Separate functions from top-level statements

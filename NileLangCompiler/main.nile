@@ -1,0 +1,6 @@
+dynasty calculate(stone a, stone b) {
+    tribute a * b;
+}
+
+stone result = calculate(10, 5);
+carve result;
